@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selección de personaje</title>
+
+    <!-- Importmap -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "./js/three.module.js",
+        "OrbitControls": "./js/OrbitControls.js",
+        "GLTFLoader": "./js/GLTFLoader.js"
+      }
+    }
+    </script>
+
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #ffffff;
+            font-family: 'Consolas', monospace;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            background: #ffffff;
+            padding: 10px;
+            border-bottom: 2px solid #000000;
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            height: calc(100vh - 50px);
+        }
+
+        .left {
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            border-right: 2px solid #2a2e3a;
+            padding: 20px;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 200px);
+            grid-gap: 20px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .character {
+            width: 200px;
+            height: 200px;
+            border: 2px solid #cbcbcb;
+            background-color: #c3c3c3;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            overflow: hidden;
+        }
+
+        .character img {
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            image-rendering: pixelated;
+            margin-bottom: 6px;
+        }
+
+        .character span {
+            font-size: 14px;
+            color: #000;
+            text-shadow: 1px 1px #fff;
+        }
+
+        .character:hover {
+            border-color: #00c3ff;
+            transform: scale(1.03);
+        }
+
+        .character.locked {
+            filter: brightness(0.4);
+            cursor: not-allowed;
+        }
+
+        .character.new::after {
+            content: "NEW";
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            background: #ffc107;
+            color: #000000;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 5px;
+            border-radius: 3px;
+        }
+
+        .character.selected {
+            border-color: #00a2ff;
+            box-shadow: 0 0 10px #0084ff;
+        }
+
+        .skills {
+            background: #b0b0b0;
+            padding: 10px;
+            border: 2px solid #575757;
+            border-radius: 8px;
+            height: 230px;
+            overflow-y: auto;
+        }
+
+        .skills h3 {
+            margin-top: 0;
+            color: #000000;
+        }
+
+        .skill {
+            background: #000000;
+            margin: 5px 0;
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        .right {
+            background: #dbdbdb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .right img {
+            width: 250px;
+            image-rendering: pixelated;
+        }
+
+        iframe {
+            width: 90%;
+            height: 300px;
+            border: none;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+
+        }
+
+        .desc {
+            text-align: center;
+            width: 80%;
+            margin: 15px 0;
+            font-size: 13px;
+            line-height: 1.4em;
+            color: #000;
+        }
+
+        .play-btn {
+            background: #24f8ff;
+            border: none;
+            padding: 12px 35px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        .play-btn:hover {
+            background: #7effee;
+        }
+
+        /* VISOR */
+        #viewerContainer {
+            width: 90%;
+            height: 300px;
+            margin-top: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #dbdbdb;
+            /* MISMO COLOR DEL PANEL */
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+
+        .desc {
+            width: 80%;
+            text-align: center;
+            color: black;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>Selección de personaje</header>
+
+    <div class="main">
+        <div class="left">
+            <div class="character-grid" id="charGrid"></div>
+
+            <div class="skills" id="skills">
+                <h3>SKILLS</h3>
+                <p>Selecciona un personaje para ver sus habilidades.</p>
+            </div>
+        </div>
+
+        <div class="right">
+            <h2 id="charName">---</h2>
+            <img id="charImage" src="" width="250">
+
+            <div id="viewerContainer">
+                <canvas id="viewer"></canvas>
+            </div>
+
+            <p id="charDesc" class="desc">Selecciona un personaje a la izquierda.</p>
+
+            <button class="play-btn" onclick="alert('¡Personaje seleccionado!')">PLAY</button>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script type="module">
+        import * as THREE from "three";
+        import { GLTFLoader } from "GLTFLoader";
+        import { OrbitControls } from "OrbitControls";
+
+        // -------------------------------
+        // 🔥 VISOR 3D MEJORADO
+        // -------------------------------
+
+        const canvas = document.getElementById("viewer");
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
+
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xdbdbdb); // MISMO FONDO DEL PANEL
+
+        const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+        camera.position.set(0, 1.2, 40);
+
+        const controls = new OrbitControls(camera, canvas);
+        controls.enableDamping = true;
+        controls.enablePan = false;
+        controls.minDistance = 10;
+        controls.maxDistance = 60;
+
+        // ⭐ LUCES ESTILO "POKÉMON"
+        // Elimina tus luces anteriores primero o comentalas
+
+        // Luz ambiental suave
+        const ambient = new THREE.AmbientLight(0xffffff, 1.2);
+        scene.add(ambient);
+
+        // Luz direccional principal (tipo sol)
+        const dirLight = new THREE.DirectionalLight(0xffffff, 4);
+        dirLight.position.set(5, 10, 5);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // Luz de relleno (suaviza sombras)
+        const fillLight = new THREE.DirectionalLight(0xffffff, 1);
+        fillLight.position.set(-5, 5, 5);
+        scene.add(fillLight);
+
+        // Luz trasera para contorno
+        const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        backLight.position.set(0, 5, -5);
+        scene.add(backLight);
+
+
+        let currentModel = null;
+        const loader = new GLTFLoader();
+
+        function resizeViewer() {
+            const box = document.getElementById("viewerContainer");
+            const w = box.clientWidth;
+            const h = box.clientHeight;
+
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        }
+
+        window.addEventListener("resize", resizeViewer);
+        resizeViewer();
+
+        // Cargar modelos
+        window.loadModel = function (ruta) {
+            if (currentModel) {
+                scene.remove(currentModel);
+                currentModel = null;
+            }
+
+            loader.load(ruta, (gltf) => {
+                currentModel = gltf.scene;
+
+                // Centrado y escala AUTO
+                const box = new THREE.Box3().setFromObject(currentModel);
+                const size = box.getSize(new THREE.Vector3()).length();
+                const center = box.getCenter(new THREE.Vector3());
+                currentModel.position.sub(center);
+                currentModel.scale.setScalar(2 / size * 24);
+
+                // Mejor material
+                currentModel.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        if (child.material) {
+                            child.material.side = THREE.FrontSide;
+
+                            // 👇 NECESARIO PARA QUE LAS TEXTURAS INCRUSTADAS SE VEAN
+                            if (child.material.map) {
+                                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                                child.material.map.needsUpdate = true;
+                            }
+
+                            child.material.needsUpdate = true;
+
+
+                        }
+                    }
+                });
+
+
+                scene.add(currentModel);
+
+                controls.target.set(0, 0.5, 0);
+                controls.update();
+            });
+        };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // -------------------------------
+        // PERSONAJES
+        // -------------------------------
+
+        const characters = [
+            { name: "Macha", img: "macha.png", model: "models/macha.glb", desc: "For some time after its birth, it uses the nutrients that are packed into the seed on its back in order to grow.", skills: ["Punch", "Shield", "Leap"], state: "unlocked" },
+            { name: "Caterpie", img: "Caterpie.png", model: "models/Caterpie.glb", desc: "The flame on its tail shows the strength of its life-force. If Charmander is weak, the flame also burns weakly.", skills: ["Camouflage", "Shot"], state: "new" },
+            { name: "Charmander", img: "Charmander.png", model: "models/Charmander.glb", desc: "The flame on its tail shows the strength of its life-force. If Charmander is weak, the flame also burns weakly..", skills: ["Flame", "Turret"], state: "unlocked" },
+            { name: "Diglett", img: "Diglett.png", model: "models/", desc: "It lives about one yard underground, where it feeds on plant roots. It sometimes appears aboveground.", skills: ["Heal Beam", "Revive", "Protective Mist"], state: "locked" },
+            { name: "Ekans", img: "Ekans.png", model: "models/ekans.glb", desc: "It can freely detach its jaw to swallow large prey whole. It can become too heavy to move, however.", skills: ["Dash", "Stealth", "Pulse Shot"], state: "unlocked" },
+            { name: "Oddish", img: "Oddish.png", model: "models/oddish.glb", desc: "Its scientific name is Oddium wanderus. It is said to cover distances as far as 1,000 feet when night falls, walking on its two roots.", skills: ["Flame Burst", "Fire Wall", "Explosion Core"], state: "new" },
+            { name: "Paras", img: "Paras.png", model: "models/paras.glb", desc: "Burrows under the ground to gnaw on tree roots. The mushrooms on its back absorb most of the nutrition.", skills: ["Backstab", "Shadow Step", "Poison Blade"], state: "unlocked" },
+            { name: "Pikachu ", img: "Pikachu.png", modelId: "dfb7cbf8477844b79257e30adf28b8ee", desc: "When it is angered, it immediately discharges the energy stored in the pouches in its cheeks.", skills: ["Laser Beam", "EMP Blast", "Overdrive"], state: "locked" },
+        ];
+
+        const grid = document.getElementById("charGrid");
+        const nameBox = document.getElementById("charName");
+        const imgBox = document.getElementById("charImage");
+        const descBox = document.getElementById("charDesc");
+        const skillsBox = document.getElementById("skills");
+        const modelBox = document.getElementById("charModel");
+
+        characters.forEach((c, i) => {
+            const div = document.createElement("div");
+            div.classList.add("character");
+            if (c.state === "locked") div.classList.add("locked");
+            if (c.state === "new") div.classList.add("new");
+
+            const img = document.createElement("img");
+            img.src = c.img;
+            img.alt = c.name;
+
+            const span = document.createElement("span");
+            span.textContent = c.name;
+
+            div.appendChild(img);
+            div.appendChild(span);
+
+            div.addEventListener("click", () => selectCharacter(i, div));
+            grid.appendChild(div);
+        });
+
+
+        function selectCharacter(index, element) {
+            const c = characters[index];
+            if (c.state === "locked") return;
+
+            document.querySelectorAll(".character").forEach(x => x.classList.remove("selected"));
+            element.classList.add("selected");
+
+            nameBox.textContent = c.name;
+            imgBox.src = c.img;
+            descBox.textContent = c.desc;
+
+            skillsBox.innerHTML = "<h3>SKILLS</h3>" +
+
+                c.skills.map(s => `<div class='skill'>${s}</div>`).join("");
+
+            loadModel(c.model);
+        }
+    </script>
+</body>
+
+</html>
