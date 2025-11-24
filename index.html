@@ -7,14 +7,12 @@
     <title>Selección de personaje</title>
 
     <!-- Importmap -->
-
-    <script type="module">
+    <script type="importmap">
         import * as THREE from "./js/three.module.js";
         import { OrbitControls } from "./js/jsm/controls/OrbitControls.js";
         import { GLTFLoader } from "./js/jsm/loaders/GLTFLoader.js";
-
-
-    </script>
+        
+        </script>
 
 
     <style>
@@ -236,11 +234,9 @@
 
     <!-- SCRIPT -->
     <script type="module">
-        import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.164/build/three.module.js";
-        import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.164/examples/jsm/loaders/GLTFLoader.js";
-        import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.164/examples/jsm/controls/OrbitControls.js";
-
-
+        import * as THREE from "three";
+        import { GLTFLoader } from "GLTFLoader";
+        import { OrbitControls } from "OrbitControls";
 
         // -------------------------------
         // 🔥 VISOR 3D MEJORADO
