@@ -7,15 +7,14 @@
     <title>Selección de personaje</title>
 
     <!-- Importmap -->
-    <script type="importmap">
-        {
-          "imports": {
-            "three": "./js/three.module.js",
-            "OrbitControls": "./js/OrbitControls.js",
-            "GLTFLoader": "./js/GLTFLoader.js"
-          }
-        }
-        </script>
+
+    <script type="module">
+        import * as THREE from "./js/three.module.js";
+        import { OrbitControls } from "./js/jsm/controls/OrbitControls.js";
+        import { GLTFLoader } from "./js/jsm/loaders/GLTFLoader.js";
+
+
+    </script>
 
 
     <style>
