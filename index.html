@@ -8,14 +8,15 @@
 
     <!-- Importmap -->
     <script type="importmap">
-    {
-      "imports": {
-        "three": "./js/three.module.js",
-        "OrbitControls": "./js/OrbitControls.js",
-        "GLTFLoader": "./js/GLTFLoader.js"
-      }
-    }
-    </script>
+        {
+          "imports": {
+            "three": "./js/three.module.js",
+            "OrbitControls": "./js/OrbitControls.js",
+            "GLTFLoader": "./js/GLTFLoader.js"
+          }
+        }
+        </script>
+
 
     <style>
         body {
@@ -236,186 +237,205 @@
 
     <!-- SCRIPT -->
     <script type="module">
-        import * as THREE from "three";
-        import { GLTFLoader } from "GLTFLoader";
-        import { OrbitControls } from "OrbitControls";
+        import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.164/build/three.module.js";
+        import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.164/examples/jsm/controls/OrbitControls.js";
+        import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.164/examples/jsm/loaders/GLTFLoader.js";
 
-        // -------------------------------
-        // 🔥 VISOR 3D MEJORADO
-        // -------------------------------
+        // --- PEGAS AQUÍ TODO TU CÓDIGO DEL SCRIPT ---
+    </script>
 
-        const canvas = document.getElementById("viewer");
-        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.1;
+    // -------------------------------
+    // 🔥 VISOR 3D MEJORADO
+    // -------------------------------
 
-
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xdbdbdb); // MISMO FONDO DEL PANEL
-
-        const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
-        camera.position.set(0, 1.2, 40);
-
-        const controls = new OrbitControls(camera, canvas);
-        controls.enableDamping = true;
-        controls.enablePan = false;
-        controls.minDistance = 10;
-        controls.maxDistance = 60;
-
-        // ⭐ LUCES ESTILO "POKÉMON"
-        // Elimina tus luces anteriores primero o comentalas
-
-        // Luz ambiental suave
-        const ambient = new THREE.AmbientLight(0xffffff, 1.2);
-        scene.add(ambient);
-
-        // Luz direccional principal (tipo sol)
-        const dirLight = new THREE.DirectionalLight(0xffffff, 4);
-        dirLight.position.set(5, 10, 5);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
-
-        // Luz de relleno (suaviza sombras)
-        const fillLight = new THREE.DirectionalLight(0xffffff, 1);
-        fillLight.position.set(-5, 5, 5);
-        scene.add(fillLight);
-
-        // Luz trasera para contorno
-        const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        backLight.position.set(0, 5, -5);
-        scene.add(backLight);
+    const canvas = document.getElementById("viewer");
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
 
 
-        let currentModel = null;
-        const loader = new GLTFLoader();
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xdbdbdb); // MISMO FONDO DEL PANEL
 
-        function resizeViewer() {
-            const box = document.getElementById("viewerContainer");
-            const w = box.clientWidth;
-            const h = box.clientHeight;
+    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+    camera.position.set(0, 1.2, 40);
 
-            camera.aspect = w / h;
-            camera.updateProjectionMatrix();
-            renderer.setSize(w, h);
-        }
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.minDistance = 10;
+    controls.maxDistance = 60;
 
-        window.addEventListener("resize", resizeViewer);
-        resizeViewer();
+    // ⭐ LUCES ESTILO "POKÉMON"
+    // Elimina tus luces anteriores primero o comentalas
 
-        // Cargar modelos
-        window.loadModel = function (ruta) {
-            if (currentModel) {
-                scene.remove(currentModel);
-                currentModel = null;
-            }
+    // Luz ambiental suave
+    const ambient = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambient);
 
-            loader.load(ruta, (gltf) => {
-                currentModel = gltf.scene;
+    // Luz direccional principal (tipo sol)
+    const dirLight = new THREE.DirectionalLight(0xffffff, 4);
+    dirLight.position.set(5, 10, 5);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
 
-                // Centrado y escala AUTO
-                const box = new THREE.Box3().setFromObject(currentModel);
-                const size = box.getSize(new THREE.Vector3()).length();
-                const center = box.getCenter(new THREE.Vector3());
-                currentModel.position.sub(center);
-                currentModel.scale.setScalar(2 / size * 24);
+    // Luz de relleno (suaviza sombras)
+    const fillLight = new THREE.DirectionalLight(0xffffff, 1);
+    fillLight.position.set(-5, 5, 5);
+    scene.add(fillLight);
 
-                // Mejor material
-                currentModel.traverse((child) => {
-                    if (child.isMesh) {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        if (child.material) {
-                            child.material.side = THREE.FrontSide;
-
-                            // 👇 NECESARIO PARA QUE LAS TEXTURAS INCRUSTADAS SE VEAN
-                            if (child.material.map) {
-                                child.material.map.colorSpace = THREE.SRGBColorSpace;
-                                child.material.map.needsUpdate = true;
-                            }
-
-                            child.material.needsUpdate = true;
+    // Luz trasera para contorno
+    const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    backLight.position.set(0, 5, -5);
+    scene.add(backLight);
 
 
-                        }
-                    }
-                });
+    let currentModel = null;
+    const loader = new GLTFLoader();
+
+    function resizeViewer() {
+    const box = document.getElementById("viewerContainer");
+    const w = box.clientWidth;
+    const h = box.clientHeight;
+
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+    }
+
+    window.addEventListener("resize", resizeViewer);
+    resizeViewer();
+
+    // Cargar modelos
+    window.loadModel = function (ruta) {
+    if (currentModel) {
+    scene.remove(currentModel);
+    currentModel = null;
+    }
+
+    loader.load(ruta, (gltf) => {
+    currentModel = gltf.scene;
+
+    // Centrado y escala AUTO
+    const box = new THREE.Box3().setFromObject(currentModel);
+    const size = box.getSize(new THREE.Vector3()).length();
+    const center = box.getCenter(new THREE.Vector3());
+    currentModel.position.sub(center);
+    currentModel.scale.setScalar(2 / size * 24);
+
+    // Mejor material
+    currentModel.traverse((child) => {
+    if (child.isMesh) {
+    child.castShadow = true;
+    child.receiveShadow = true;
+    if (child.material) {
+    child.material.side = THREE.FrontSide;
+
+    // 👇 NECESARIO PARA QUE LAS TEXTURAS INCRUSTADAS SE VEAN
+    if (child.material.map) {
+    child.material.map.colorSpace = THREE.SRGBColorSpace;
+    child.material.map.needsUpdate = true;
+    }
+
+    child.material.needsUpdate = true;
 
 
-                scene.add(currentModel);
-
-                controls.target.set(0, 0.5, 0);
-                controls.update();
-            });
-        };
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // -------------------------------
-        // PERSONAJES
-        // -------------------------------
-
-        const characters = [
-            { name: "Macha", img: "macha.png", model: "models/macha.glb", desc: "For some time after its birth, it uses the nutrients that are packed into the seed on its back in order to grow.", skills: ["Punch", "Shield", "Leap"], state: "unlocked" },
-            { name: "Caterpie", img: "Caterpie.png", model: "models/Caterpie.glb", desc: "The flame on its tail shows the strength of its life-force. If Charmander is weak, the flame also burns weakly.", skills: ["Camouflage", "Shot"], state: "new" },
-            { name: "Charmander", img: "Charmander.png", model: "models/Charmander.glb", desc: "The flame on its tail shows the strength of its life-force. If Charmander is weak, the flame also burns weakly..", skills: ["Flame", "Turret"], state: "unlocked" },
-            { name: "Diglett", img: "Diglett.png", model: "models/", desc: "It lives about one yard underground, where it feeds on plant roots. It sometimes appears aboveground.", skills: ["Heal Beam", "Revive", "Protective Mist"], state: "locked" },
-            { name: "Ekans", img: "Ekans.png", model: "models/ekans.glb", desc: "It can freely detach its jaw to swallow large prey whole. It can become too heavy to move, however.", skills: ["Dash", "Stealth", "Pulse Shot"], state: "unlocked" },
-            { name: "Oddish", img: "Oddish.png", model: "models/oddish.glb", desc: "Its scientific name is Oddium wanderus. It is said to cover distances as far as 1,000 feet when night falls, walking on its two roots.", skills: ["Flame Burst", "Fire Wall", "Explosion Core"], state: "new" },
-            { name: "Paras", img: "Paras.png", model: "models/paras.glb", desc: "Burrows under the ground to gnaw on tree roots. The mushrooms on its back absorb most of the nutrition.", skills: ["Backstab", "Shadow Step", "Poison Blade"], state: "unlocked" },
-            { name: "Pikachu ", img: "Pikachu.png", modelId: "dfb7cbf8477844b79257e30adf28b8ee", desc: "When it is angered, it immediately discharges the energy stored in the pouches in its cheeks.", skills: ["Laser Beam", "EMP Blast", "Overdrive"], state: "locked" },
-        ];
-
-        const grid = document.getElementById("charGrid");
-        const nameBox = document.getElementById("charName");
-        const imgBox = document.getElementById("charImage");
-        const descBox = document.getElementById("charDesc");
-        const skillsBox = document.getElementById("skills");
-        const modelBox = document.getElementById("charModel");
-
-        characters.forEach((c, i) => {
-            const div = document.createElement("div");
-            div.classList.add("character");
-            if (c.state === "locked") div.classList.add("locked");
-            if (c.state === "new") div.classList.add("new");
-
-            const img = document.createElement("img");
-            img.src = c.img;
-            img.alt = c.name;
-
-            const span = document.createElement("span");
-            span.textContent = c.name;
-
-            div.appendChild(img);
-            div.appendChild(span);
-
-            div.addEventListener("click", () => selectCharacter(i, div));
-            grid.appendChild(div);
-        });
+    }
+    }
+    });
 
 
-        function selectCharacter(index, element) {
-            const c = characters[index];
-            if (c.state === "locked") return;
+    scene.add(currentModel);
 
-            document.querySelectorAll(".character").forEach(x => x.classList.remove("selected"));
-            element.classList.add("selected");
+    controls.target.set(0, 0.5, 0);
+    controls.update();
+    });
+    };
 
-            nameBox.textContent = c.name;
-            imgBox.src = c.img;
-            descBox.textContent = c.desc;
+    function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+    }
+    animate();
 
-            skillsBox.innerHTML = "<h3>SKILLS</h3>" +
+    // -------------------------------
+    // PERSONAJES
+    // -------------------------------
 
-                c.skills.map(s => `<div class='skill'>${s}</div>`).join("");
+    const characters = [
+    { name: "Macha", img: "macha.png", model: "models/macha.glb", desc: "For some time after its birth, it uses the
+    nutrients that are packed into the seed on its back in order to grow.", skills: ["Punch", "Shield", "Leap"], state:
+    "unlocked" },
+    { name: "Caterpie", img: "Caterpie.png", model: "models/Caterpie.glb", desc: "The flame on its tail shows the
+    strength of its life-force. If Charmander is weak, the flame also burns weakly.", skills: ["Camouflage", "Shot"],
+    state: "new" },
+    { name: "Charmander", img: "Charmander.png", model: "models/Charmander.glb", desc: "The flame on its tail shows the
+    strength of its life-force. If Charmander is weak, the flame also burns weakly..", skills: ["Flame", "Turret"],
+    state: "unlocked" },
+    { name: "Diglett", img: "Diglett.png", model: "models/", desc: "It lives about one yard underground, where it feeds
+    on plant roots. It sometimes appears aboveground.", skills: ["Heal Beam", "Revive", "Protective Mist"], state:
+    "locked" },
+    { name: "Ekans", img: "Ekans.png", model: "models/ekans.glb", desc: "It can freely detach its jaw to swallow large
+    prey whole. It can become too heavy to move, however.", skills: ["Dash", "Stealth", "Pulse Shot"], state: "unlocked"
+    },
+    { name: "Oddish", img: "Oddish.png", model: "models/oddish.glb", desc: "Its scientific name is Oddium wanderus. It
+    is said to cover distances as far as 1,000 feet when night falls, walking on its two roots.", skills: ["Flame
+    Burst", "Fire Wall", "Explosion Core"], state: "new" },
+    { name: "Paras", img: "Paras.png", model: "models/paras.glb", desc: "Burrows under the ground to gnaw on tree roots.
+    The mushrooms on its back absorb most of the nutrition.", skills: ["Backstab", "Shadow Step", "Poison Blade"],
+    state: "unlocked" },
+    { name: "Pikachu ", img: "Pikachu.png", modelId: "dfb7cbf8477844b79257e30adf28b8ee", desc: "When it is angered, it
+    immediately discharges the energy stored in the pouches in its cheeks.", skills: ["Laser Beam", "EMP Blast",
+    "Overdrive"], state: "locked" },
+    ];
 
-            loadModel(c.model);
-        }
+    const grid = document.getElementById("charGrid");
+    const nameBox = document.getElementById("charName");
+    const imgBox = document.getElementById("charImage");
+    const descBox = document.getElementById("charDesc");
+    const skillsBox = document.getElementById("skills");
+    const modelBox = document.getElementById("charModel");
+
+    characters.forEach((c, i) => {
+    const div = document.createElement("div");
+    div.classList.add("character");
+    if (c.state === "locked") div.classList.add("locked");
+    if (c.state === "new") div.classList.add("new");
+
+    const img = document.createElement("img");
+    img.src = c.img;
+    img.alt = c.name;
+
+    const span = document.createElement("span");
+    span.textContent = c.name;
+
+    div.appendChild(img);
+    div.appendChild(span);
+
+    div.addEventListener("click", () => selectCharacter(i, div));
+    grid.appendChild(div);
+    });
+
+
+    function selectCharacter(index, element) {
+    const c = characters[index];
+    if (c.state === "locked") return;
+
+    document.querySelectorAll(".character").forEach(x => x.classList.remove("selected"));
+    element.classList.add("selected");
+
+    nameBox.textContent = c.name;
+    imgBox.src = c.img;
+    descBox.textContent = c.desc;
+
+    skillsBox.innerHTML = "<h3>SKILLS</h3>" +
+
+    c.skills.map(s => `<div class='skill'>${s}</div>`).join("");
+
+    loadModel(c.model);
+    }
     </script>
 </body>
 
